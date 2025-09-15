@@ -633,10 +633,10 @@ const PortfolioDetail: React.FC<PortfolioDetailProps> = ({ cqid, onClose }) => {
     
     {/* Reports Documents Modal */}
     {showReportsDocuments && (
-      <ReportsDocuments
-        cqid={portfolioData.cqid}
-        onClose={() => setShowReportsDocuments(false)}
-      />
+      <div className="space-y-4">
+        <h3 className="font-medium">Reports & Documents</h3>
+        <p>No reports available for CQID: {portfolioData.cqid}</p>
+      </div>
     )}
     
     {/* Blockchain Verification Modal */}

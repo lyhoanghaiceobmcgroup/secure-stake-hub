@@ -54,8 +54,8 @@ const DetailedAuctionView: React.FC<DetailedAuctionViewProps> = ({ auctionData, 
       if (status === 'open') {
         setCurrentDelta(prev => {
           const newDelta = prev + (Math.random() - 0.5) * 0.0001;
-          const deltaMax = auctionData.round?.delta_max || auctionData.currentMetrics?.deltaMax || 0.004;
-          const deltaFloor = auctionData.round?.delta_floor || auctionData.currentMetrics?.deltaFloor || 0.001;
+          const deltaMax = auctionData.round?.delta_max || 0.004;
+          const deltaFloor = auctionData.round?.delta_floor || 0.001;
           return Math.max(deltaFloor, Math.min(deltaMax, newDelta));
         });
         setCurrentCover(prev => Math.min(prev + Math.random() * 0.01, 1));

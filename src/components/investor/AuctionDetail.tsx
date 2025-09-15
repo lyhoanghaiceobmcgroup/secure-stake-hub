@@ -44,7 +44,7 @@ const AuctionDetail: React.FC<AuctionDetailProps> = ({ round: initialRound, onBa
     
     // Simulate real-time updates for mock data
      const interval = setInterval(() => {
-       if (round.status === 'active') {
+       if (round.status === 'open') {
          setRound(prev => ({
            ...prev,
            currentPrice: Math.max(prev.currentPrice - prev.priceDecrement, prev.reservePrice),

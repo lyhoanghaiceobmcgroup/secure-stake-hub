@@ -85,6 +85,27 @@ const Portfolio = () => {
 
   const portfolioService = PortfolioService.getInstance();
 
+  // Helper functions for status display
+  const getStatusVariant = (status: InvestmentData['status']) => {
+    switch (status) {
+      case 'active': return 'default';
+      case 'upcoming': return 'secondary';
+      case 'closed': return 'outline';
+      case 'transferred': return 'destructive';
+      default: return 'outline';
+    }
+  };
+
+  const getStatusText = (status: InvestmentData['status']) => {
+    switch (status) {
+      case 'active': return 'Đang hoạt động';
+      case 'upcoming': return 'Sắp tới';
+      case 'closed': return 'Đã đóng';
+      case 'transferred': return 'Đã chuyển nhượng';
+      default: return 'Không xác định';
+    }
+  };
+
   // Removed mobile detection as we use InvestorApp layout
 
   // Load dữ liệu từ PortfolioService
@@ -724,16 +745,16 @@ const Portfolio = () => {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                            {holding.projectName.charAt(0)}
+                            {holding.companyName.charAt(0)}
                           </div>
                           <div>
-                            <div className="font-medium">{holding.projectName}</div>
+                            <div className="font-medium">{holding.companyName}</div>
                             <div className="text-sm text-muted-foreground">{holding.cqid}</div>
                           </div>
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="font-medium">{holding.investmentAmount.toLocaleString()} VND</div>
+                        <div className="font-medium">{holding.amountContributed.toLocaleString()} VND</div>
                       </td>
                       <td className="p-4">
                         <div className="font-medium text-green-600">{holding.targetRate}%/năm</div>
@@ -750,7 +771,7 @@ const Portfolio = () => {
                             size="sm"
                             onClick={() => {
                               setSelectedHolding(holding);
-                              setIsDetailDialogOpen(true);
+                              setIsDetailOpen(true);
                             }}
                           >
                             <Eye className="w-4 h-4" />

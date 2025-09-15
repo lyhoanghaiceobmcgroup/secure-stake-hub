@@ -118,6 +118,7 @@ const BidForm: React.FC<BidFormProps> = ({ round, onSuccess, onCancel }) => {
       if (response.success && response.bidId) {
         // Create bid object for callback
         const bid: BidOrder = {
+          id: `BID-${Date.now()}`,
           bidId: response.bidId,
           roundId: round.roundId,
           userId: 'USER-001',
@@ -128,12 +129,13 @@ const BidForm: React.FC<BidFormProps> = ({ round, onSuccess, onCancel }) => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           idempotencyKey: bidRequest.idempotencyKey,
-          receiptHash: response.receiptHash
+          receiptHash: response.receiptHash,
+          auctionId: round.id
         };
         
         onSuccess(bid);
       } else {
-        setErrors({ general: response.message || 'Đặt lệnh thất bại' });
+        setErrors({ general: 'Đặt lệnh thất bại' });
       }
     } catch (error) {
       console.error('Failed to place bid:', error);

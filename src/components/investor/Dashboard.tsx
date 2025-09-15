@@ -306,7 +306,6 @@ const Dashboard = () => {
                   cy="50%"
                   outerRadius={70}
                   label={({ name, value }) => `${name}: ${value}%`}
-                  labelStyle={{ fontSize: '12px' }}
                 >
                   {portfolioData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />

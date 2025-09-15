@@ -453,7 +453,7 @@ const BusinessProgressTracking: React.FC<BusinessProgressTrackingProps> = ({
                             <BlockchainVerifyButton 
                               hash={update.reportHash}
                               timestamp={update.date}
-                              type="report"
+                              type="document"
                             />
                           )}
                         </div>
@@ -529,7 +529,6 @@ const BusinessProgressTracking: React.FC<BusinessProgressTrackingProps> = ({
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <StatusIcon className={`w-6 h-6 ${
-                            milestone.status === 'completed' ? 'text-green-600' :
                             milestone.status === 'in_progress' ? 'text-yellow-600' : 'text-gray-600'
                           }`} />
                           <div>
@@ -647,7 +646,11 @@ const BusinessProgressTracking: React.FC<BusinessProgressTrackingProps> = ({
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span>Bởi {qa.askedBy}</span>
                             <span>{formatDate(qa.askedDate)}</span>
-                            <Badge variant="outline" className={getCategoryColor(qa.category)}>
+                            <Badge variant="outline" className={getCategoryColor(
+                              qa.category === 'business' ? 'operational' :
+                              qa.category === 'technical' ? 'milestone' :
+                              qa.category === 'general' ? 'market' : 'financial'
+                            )}>
                               {qa.category === 'business' && 'Kinh doanh'}
                               {qa.category === 'financial' && 'Tài chính'}
                               {qa.category === 'technical' && 'Kỹ thuật'}

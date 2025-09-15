@@ -347,14 +347,14 @@ const ReinvestmentSystem: React.FC<ReinvestmentSystemProps> = ({ cqid, onClose }
     setEditingRule(rule);
     setRuleForm({
       name: rule.name,
-      type: rule.type,
+      type: rule.type as any,
       percentage: rule.conditions.percentage?.toString() || '',
       fixedAmount: rule.conditions.fixedAmount?.toString() || '',
       threshold: rule.conditions.threshold?.toString() || '',
       minAmount: rule.conditions.minAmount?.toString() || '',
       maxAmount: rule.conditions.maxAmount?.toString() || '',
       targetPackages: rule.conditions.targetPackages || [],
-      frequency: rule.conditions.frequency || 'immediate'
+      frequency: rule.conditions.frequency as 'immediate' || 'immediate'
     });
     setShowRuleForm(true);
   };
@@ -370,12 +370,12 @@ const ReinvestmentSystem: React.FC<ReinvestmentSystemProps> = ({ cqid, onClose }
       return;
     }
 
-    if (ruleForm.type === 'fixed_amount' && !ruleForm.fixedAmount) {
+    if ((ruleForm.type as any) === 'fixed_amount' && !ruleForm.fixedAmount) {
       toast.error('Vui lòng nhập số tiền cố định');
       return;
     }
 
-    if (ruleForm.type === 'threshold' && !ruleForm.threshold) {
+    if ((ruleForm.type as any) === 'threshold' && !ruleForm.threshold) {
       toast.error('Vui lòng nhập ngưỡng kích hoạt');
       return;
     }
@@ -928,7 +928,7 @@ const ReinvestmentSystem: React.FC<ReinvestmentSystemProps> = ({ cqid, onClose }
                     </div>
                   )}
 
-                  {ruleForm.type === 'fixed_amount' && (
+                  {(ruleForm.type as any) === 'fixed_amount' && (
                     <div>
                       <Label htmlFor="fixedAmount">Số tiền cố định (VND)</Label>
                       <Input
@@ -941,7 +941,7 @@ const ReinvestmentSystem: React.FC<ReinvestmentSystemProps> = ({ cqid, onClose }
                     </div>
                   )}
 
-                  {ruleForm.type === 'threshold' && (
+                  {(ruleForm.type as any) === 'threshold' && (
                     <>
                       <div>
                         <Label htmlFor="threshold">Ngưỡng kích hoạt (VND)</Label>

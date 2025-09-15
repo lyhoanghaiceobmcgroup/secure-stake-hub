@@ -733,7 +733,7 @@ const OpportunityExplorer = () => {
               <DialogTitle>{selectedOpportunity.projectName}</DialogTitle>
             </DialogHeader>
             <OpportunityDetail 
-              opportunity={selectedOpportunity}
+              opportunity={selectedOpportunity as any}
               onInvest={() => {
                 setIsDetailDialogOpen(false);
                 setIsInvestmentFlowOpen(true);
