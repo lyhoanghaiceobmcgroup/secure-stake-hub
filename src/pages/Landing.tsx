@@ -149,14 +149,8 @@ const Landing = () => {
           <div className="max-w-5xl mx-auto space-y-8">
             {/* Trust Indicators */}
             <div className="flex justify-center items-center gap-4 mb-6">
-              <Badge variant="secondary" className="bg-white/10 text-white border-white/20 backdrop-blur-sm">
-                <Shield className="w-3 h-3 mr-1" />
-                Blockchain Verified
-              </Badge>
-              <Badge variant="secondary" className="bg-white/10 text-white border-white/20 backdrop-blur-sm">
-                <Star className="w-3 h-3 mr-1" />
-                Trusted Platform
-              </Badge>
+              
+              
             </div>
             
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight bg-gradient-to-r from-white via-white to-golden-light bg-clip-text text-transparent">
@@ -199,9 +193,7 @@ const Landing = () => {
                   </div>
                   <div>
                     <h3 className="text-2xl lg:text-3xl font-bold mb-2">{currentContent.systems.investor.title}</h3>
-                    <Badge variant="secondary" className="bg-golden/20 text-golden border-golden/30 mb-4">
-                      {currentContent.systems.investor.subtitle}
-                    </Badge>
+                    
                     <p className="text-white/90 text-lg leading-relaxed">{currentContent.systems.investor.description}</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -235,9 +227,7 @@ const Landing = () => {
                   </div>
                   <div>
                     <h3 className="text-2xl lg:text-3xl font-bold mb-2">{currentContent.systems.business.title}</h3>
-                    <Badge variant="secondary" className="bg-navy/20 text-navy-light border-navy/30 mb-4">
-                      {currentContent.systems.business.subtitle}
-                    </Badge>
+                    
                     <p className="text-white/90 text-lg leading-relaxed">{currentContent.systems.business.description}</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -266,10 +256,7 @@ const Landing = () => {
       <section id="features" className="py-20 lg:py-32 bg-gradient-to-br from-background via-background to-muted/20">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="text-center mb-16 lg:mb-20">
-            <Badge variant="outline" className="mb-4 text-navy border-navy/20">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Tính năng nổi bật
-            </Badge>
+            
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-navy mb-6 leading-tight">
               Nền tảng đầu tư minh bạch
             </h2>
