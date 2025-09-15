@@ -280,10 +280,10 @@ const Dashboard = () => {
                     name === 'payout' ? 'Phân phối' : 'Tái đầu tư'
                   ]}
                 />
-                <Area type="monotone" dataKey="inflow" stackId="1" stroke="#C8A75A" fill="#C8A75A" fillOpacity={0.8} />
-                <Area type="monotone" dataKey="payout" stackId="2" stroke="#2BAA6A" fill="#2BAA6A" fillOpacity={0.8} />
-                <Area type="monotone" dataKey="reinvest" stackId="3" stroke="#0B2342" fill="#0B2342" fillOpacity={0.8} />
-                <Area type="monotone" dataKey="outflow" stackId="4" stroke="#E2434B" fill="#E2434B" fillOpacity={0.8} />
+                <Area type="monotone" dataKey="inflow" stroke="hsl(var(--golden))" fill="hsl(var(--golden))" fillOpacity={0.3} />
+                <Area type="monotone" dataKey="payout" stroke="hsl(var(--success))" fill="hsl(var(--success))" fillOpacity={0.3} />
+                <Area type="monotone" dataKey="reinvest" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} />
+                <Area type="monotone" dataKey="outflow" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.3} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
