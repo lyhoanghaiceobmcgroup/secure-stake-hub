@@ -18,7 +18,7 @@ import {
 import KPICard from "./KPICard";
 import UyTinBadge from "./UyTinBadge";
 import ProgressCard from "./ProgressCard";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, PieChart as RechartsPieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, PieChart as RechartsPieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
 const Dashboard = () => {
   // Mock data - in real app this would come from API
@@ -269,7 +269,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={cashflowData}>
+              <LineChart data={cashflowData}>
                 <XAxis dataKey="month" fontSize={12} />
                 <YAxis fontSize={12} />
                 <Tooltip 
@@ -280,11 +280,11 @@ const Dashboard = () => {
                     name === 'payout' ? 'Phân phối' : 'Tái đầu tư'
                   ]}
                 />
-                <Area type="monotone" dataKey="inflow" stroke="hsl(var(--golden))" fill="hsl(var(--golden))" fillOpacity={0.3} />
-                <Area type="monotone" dataKey="payout" stroke="hsl(var(--success))" fill="hsl(var(--success))" fillOpacity={0.3} />
-                <Area type="monotone" dataKey="reinvest" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} />
-                <Area type="monotone" dataKey="outflow" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.3} />
-              </AreaChart>
+                <Line type="monotone" dataKey="inflow" stroke="hsl(var(--golden))" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="payout" stroke="hsl(var(--success))" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="reinvest" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="outflow" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} />
+              </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
