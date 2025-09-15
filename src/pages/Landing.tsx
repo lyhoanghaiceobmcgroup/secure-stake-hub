@@ -5,12 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Globe, Shield, TrendingUp, Users, Building2, Languages, Star, CheckCircle, ArrowRight, Sparkles, Zap, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-fintech.jpg";
-
 const Landing = () => {
   const [language, setLanguage] = useState<'vi' | 'en'>('vi');
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -18,7 +16,6 @@ const Landing = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
   const content = {
     vi: {
       hero: {
@@ -34,33 +31,29 @@ const Landing = () => {
           register: "Đăng ký"
         },
         business: {
-          title: "Doanh nghiệp", 
+          title: "Doanh nghiệp",
           subtitle: "Business App",
           description: "Huy động vốn từ cộng đồng đầu tư uy tín",
           login: "Đăng nhập",
           register: "Đăng ký"
         }
       },
-      features: [
-        {
-          icon: Shield,
-          title: "Chuẩn minh bạch blockchain",
-          description: "Mọi giao dịch được xác thực và lưu trữ bất biến"
-        },
-        {
-          icon: TrendingUp,
-          title: "Đối soát realtime 2 chiều",
-          description: "Theo dõi tiến độ và phân phối lợi ích minh bạch"
-        },
-        {
-          icon: Users,
-          title: "Quyền lợi đầu tư rõ ràng",
-          description: "Chứng chỉ quyền lợi đầu tư cá nhân được bảo vệ"
-        }
-      ],
+      features: [{
+        icon: Shield,
+        title: "Chuẩn minh bạch blockchain",
+        description: "Mọi giao dịch được xác thực và lưu trữ bất biến"
+      }, {
+        icon: TrendingUp,
+        title: "Đối soát realtime 2 chiều",
+        description: "Theo dõi tiến độ và phân phối lợi ích minh bạch"
+      }, {
+        icon: Users,
+        title: "Quyền lợi đầu tư rõ ràng",
+        description: "Chứng chỉ quyền lợi đầu tư cá nhân được bảo vệ"
+      }],
       footer: {
         terms: "Điều khoản",
-        privacy: "Quyền riêng tư", 
+        privacy: "Quyền riêng tư",
         contact: "Liên hệ",
         support: "Trung tâm hỗ trợ 24/7"
       }
@@ -80,48 +73,37 @@ const Landing = () => {
         },
         business: {
           title: "Business",
-          subtitle: "Business App", 
+          subtitle: "Business App",
           description: "Raise capital from reputable investment community",
           login: "Login",
           register: "Register"
         }
       },
-      features: [
-        {
-          icon: Shield,
-          title: "Blockchain Transparency Standard",
-          description: "All transactions are verified and stored immutably"
-        },
-        {
-          icon: TrendingUp,
-          title: "Real-time 2-way Reconciliation",
-          description: "Track progress and benefit distribution transparently"
-        },
-        {
-          icon: Users,
-          title: "Clear Investment Rights",
-          description: "Personal investment right certificates are protected"
-        }
-      ],
+      features: [{
+        icon: Shield,
+        title: "Blockchain Transparency Standard",
+        description: "All transactions are verified and stored immutably"
+      }, {
+        icon: TrendingUp,
+        title: "Real-time 2-way Reconciliation",
+        description: "Track progress and benefit distribution transparently"
+      }, {
+        icon: Users,
+        title: "Clear Investment Rights",
+        description: "Personal investment right certificates are protected"
+      }],
       footer: {
         terms: "Terms",
         privacy: "Privacy",
-        contact: "Contact", 
+        contact: "Contact",
         support: "24/7 Support Center"
       }
     }
   };
-
   const currentContent = content[language];
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-lg border-b border-border shadow-lg' 
-          : 'bg-white/80 backdrop-blur-md border-b border-white/20'
-      }`}>
+      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-lg border-b border-border shadow-lg' : 'bg-white/80 backdrop-blur-md border-b border-white/20'}`}>
         <div className="container mx-auto px-4 lg:px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-golden via-golden-light to-yellow-400 rounded-xl flex items-center justify-center shadow-lg">
@@ -139,12 +121,7 @@ const Landing = () => {
               <a href="#about" className="text-sm font-medium text-muted-foreground hover:text-navy transition-colors">Về chúng tôi</a>
               <a href="#contact" className="text-sm font-medium text-muted-foreground hover:text-navy transition-colors">Liên hệ</a>
             </nav>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-              className="gap-2 hover:scale-105 transition-transform"
-            >
+            <Button variant="outline" size="sm" onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')} className="gap-2 hover:scale-105 transition-transform">
               <Languages className="w-4 h-4" />
               {language === 'vi' ? 'EN' : 'VI'}
             </Button>
@@ -154,10 +131,9 @@ const Landing = () => {
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroImage})` }}
-        >
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
+        backgroundImage: `url(${heroImage})`
+      }}>
           <div className="absolute inset-0 bg-gradient-to-br from-navy/70 via-navy/60 to-navy-light/50"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
         </div>
@@ -229,10 +205,16 @@ const Landing = () => {
                     <p className="text-white/90 text-lg leading-relaxed">{currentContent.systems.investor.description}</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={(e) => {e.stopPropagation(); navigate('/login');}}>
+                    <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={e => {
+                    e.stopPropagation();
+                    navigate('/login');
+                  }}>
                       {currentContent.systems.investor.login}
                     </Button>
-                    <Button className="bg-gradient-to-r from-golden to-golden-light hover:from-golden-light hover:to-golden text-white shadow-lg" onClick={(e) => {e.stopPropagation(); navigate('/login');}}>
+                    <Button className="bg-gradient-to-r from-golden to-golden-light hover:from-golden-light hover:to-golden text-white shadow-lg" onClick={e => {
+                    e.stopPropagation();
+                    navigate('/login');
+                  }}>
                       {currentContent.systems.investor.register}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -259,10 +241,16 @@ const Landing = () => {
                     <p className="text-white/90 text-lg leading-relaxed">{currentContent.systems.business.description}</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={(e) => {e.stopPropagation(); navigate('/login');}}>
+                    <Button variant="outline" className="border-white/30 text-white hover:bg-white/10" onClick={e => {
+                    e.stopPropagation();
+                    navigate('/login');
+                  }}>
                       {currentContent.systems.business.login}
                     </Button>
-                    <Button className="bg-gradient-to-r from-navy to-navy-light hover:from-navy-light hover:to-navy text-white shadow-lg" onClick={(e) => {e.stopPropagation(); navigate('/login');}}>
+                    <Button className="bg-gradient-to-r from-navy to-navy-light hover:from-navy-light hover:to-navy text-white shadow-lg" onClick={e => {
+                    e.stopPropagation();
+                    navigate('/login');
+                  }}>
                       {currentContent.systems.business.register}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -291,8 +279,7 @@ const Landing = () => {
           </div>
           
           <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-            {currentContent.features.map((feature, index) => (
-              <Card key={index} className="group text-center p-6 lg:p-8 hover:shadow-xl hover:shadow-navy/10 transition-all duration-500 hover:scale-105 border-0 bg-white/50 backdrop-blur-sm hover:bg-white/80">
+            {currentContent.features.map((feature, index) => <Card key={index} className="group text-center p-6 lg:p-8 hover:shadow-xl hover:shadow-navy/10 transition-all duration-500 hover:scale-105 border-0 bg-white/50 backdrop-blur-sm hover:bg-white/80">
                 <CardContent className="space-y-6">
                   <div className="relative">
                     <div className="w-16 h-16 bg-gradient-to-br from-golden via-golden-light to-yellow-400 rounded-2xl mx-auto flex items-center justify-center group-hover:scale-110 transition-all duration-500 shadow-lg group-hover:shadow-golden/30">
@@ -307,8 +294,7 @@ const Landing = () => {
                     <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
           
           {/* Additional CTA */}
@@ -393,19 +379,19 @@ const Landing = () => {
                   <div className="w-8 h-8 bg-golden/20 rounded-lg flex items-center justify-center">
                     <Globe className="w-4 h-4 text-golden" />
                   </div>
-                  <span>support@goldenbook.vn</span>
+                  <span>contact@sovang.vn</span>
                 </div>
                 <div className="flex items-center gap-3 text-white/90">
                   <div className="w-8 h-8 bg-golden/20 rounded-lg flex items-center justify-center">
                     <Users className="w-4 h-4 text-golden" />
                   </div>
-                  <span>1900 1234</span>
+                  <span>084 890 5555</span>
                 </div>
                 <div className="flex items-start gap-3 text-white/90">
                   <div className="w-8 h-8 bg-golden/20 rounded-lg flex items-center justify-center mt-1">
                     <Building2 className="w-4 h-4 text-golden" />
                   </div>
-                  <span className="leading-relaxed">Tầng 10, Tòa nhà ABC, Quận 1, TP.HCM</span>
+                  <span className="leading-relaxed">Tòa BMC-Hà Nội, số 379 Minh Khai, phường Vĩnh Tuy, TP. Hà Nội</span>
                 </div>
               </div>
             </div>
@@ -423,8 +409,6 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Landing;
