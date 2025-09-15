@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Golden theme colors */
+    --primary: 45 86% 48%;
+    --primary-foreground: 0 0% 100%;
+    
+    --golden: 45 86% 58%;
+    --golden-light: 45 92% 68%;
+    --golden-dark: 45 76% 38%;
+    
+    --navy: 215 84% 12%;
+    --navy-light: 215 54% 22%;
+    --navy-dark: 215 94% 8%;
+
+    --secondary: 215 25% 95%;
+    --secondary-foreground: 215 84% 12%;
+
+    --muted: 215 15% 96%;
+    --muted-foreground: 215 25% 45%;
+
+    --accent: 45 86% 95%;
+    --accent-foreground: 215 84% 12%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 25% 90%;
+    --input: 215 25% 95%;
+    --ring: 45 86% 48%;
+    
+    /* Status colors */
+    --success: 142 76% 36%;
+    --warning: 45 93% 47%;
+    --error: 0 72% 51%;
+    
+    /* Uy tín colors */
+    --uy-tin-a: 142 76% 36%;
+    --uy-tin-b: 45 93% 47%;
+    --uy-tin-c: 0 72% 51%;
+    
+    /* Glass effect */
+    --glass-bg: hsl(var(--background) / 0.8);
+    --glass-border: hsl(var(--border) / 0.2);
+    
+    /* Gradients */
+    --gradient-golden: linear-gradient(135deg, hsl(var(--golden)) 0%, hsl(var(--golden-light)) 100%);
+    --gradient-navy: linear-gradient(135deg, hsl(var(--navy)) 0%, hsl(var(--navy-light)) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(var(--navy-dark)) 0%, hsl(var(--navy)) 50%, hsl(var(--golden-dark)) 100%);
+    --gradient-glass: linear-gradient(135deg, hsla(var(--background), 0.1) 0%, hsla(var(--background), 0.2) 100%);
+    
+    /* Shadows */
+    --shadow-golden: 0 10px 30px -10px hsl(var(--golden) / 0.3);
+    --shadow-navy: 0 10px 30px -10px hsl(var(--navy) / 0.2);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --shadow-elegant: 0 4px 20px -2px hsl(var(--foreground) / 0.1);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Glass effect components */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+  }
+  
+  .glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: var(--transition-smooth);
+  }
+  
+  .glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Uy tín badge styles */
+  .uy-tin-badge-a {
+    @apply bg-green-100 text-green-800 border-green-200;
+  }
+  
+  .uy-tin-badge-b {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+  }
+  
+  .uy-tin-badge-c {
+    @apply bg-red-100 text-red-800 border-red-200;
+  }
+  
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  .hover-scale {
+    @apply transition-all duration-300 hover:scale-105;
+  }
+  
+  /* Glassmorphism containers */
+  .hero-section {
+    @apply relative overflow-hidden bg-gradient-to-br from-navy-dark to-navy;
+  }
+  
+  .hero-section::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-golden/20 to-transparent;
+  }
+}
