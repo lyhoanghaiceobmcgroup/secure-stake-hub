@@ -1,9 +1,12 @@
 // Auction module types based on MODULE_DAU_GIA_QUYEN_LOI_PHAN_PHOI.md
 
 export interface AuctionRound {
+  id: string;
   roundId: string;
   gid: string;
   company: string;
+  businessName: string;
+  packageName: string;
   termMonths: number;
   startAt: string;
   endAt: string;
@@ -23,19 +26,32 @@ export interface AuctionRound {
   docs: AuctionDocument[];
   gTrust?: number;
   antiSnipingExtensions?: number;
+  currentPrice: number;
+  priceDecrement: number;
+  reservePrice: number;
+  totalBids: number;
+  participantCount: number;
+  interestRate: number;
+  currentAmount: number;
+  trustScore?: number;
+  lotSize: number;
+  capPercentage: number;
 }
 
 export interface AuctionDocument {
+  id?: string;
   title: string;
   docHash: string;
   url?: string;
-  type?: 'terms' | 'allocation' | 'receipt';
+  type?: 'terms' | 'allocation' | 'receipt' | 'prospectus' | 'financial_report' | 'legal_opinion';
 }
 
 export interface BidOrder {
+  id: string;
   bidId: string;
   roundId: string;
   userId: string;
+  userName?: string;
   amount: number;
   type: 'market' | 'limit';
   deltaMin?: number;
@@ -46,6 +62,7 @@ export interface BidOrder {
   updatedAt: string;
   idempotencyKey: string;
   receiptHash?: string;
+  auctionId: string;
 }
 
 export interface BidRequest {
@@ -57,6 +74,7 @@ export interface BidRequest {
 }
 
 export interface AllocationResult {
+  id: string;
   roundId: string;
   clearRate: number;
   totalFilled: number;
@@ -92,9 +110,18 @@ export interface UserBidSummary {
   recentBids: BidOrder[];
 }
 
+export interface UserPortfolio {
+  id: string;
+  userId: string;
+  investments: any[];
+  totalValue: number;
+  performance: number;
+  availableBalance: number;
+}
+
 export interface AuctionNotification {
   id: string;
-  type: 'round_ending' | 'extension' | 'cleared' | 'bid_filled' | 'bid_failed';
+  type: 'round_ending' | 'extension' | 'cleared' | 'bid_filled' | 'bid_failed' | 'bid_placed' | 'price_alert' | 'auction_starting' | 'allocation_confirmed' | 'auction_paused';
   roundId: string;
   message: string;
   timestamp: string;
@@ -124,7 +151,7 @@ export interface AuctionListResponse {
 export interface BidResponse {
   success: boolean;
   bidId?: string;
-  message: string;
+  message?: string;
   receiptUrl?: string;
   receiptHash?: string;
 }

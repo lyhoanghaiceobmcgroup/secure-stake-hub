@@ -9,6 +9,7 @@ interface WalletBalance {
 
 interface WalletContextType {
   walletBalance: WalletBalance;
+  balance: number;
   updateAvailableBalance: (amount: number) => void;
   updateHeldBalance: (amount: number) => void;
   updateReconcilingBalance: (amount: number) => void;
@@ -70,6 +71,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
   const value: WalletContextType = {
     walletBalance,
+    balance: walletBalance.available,
     updateAvailableBalance,
     updateHeldBalance,
     updateReconcilingBalance,

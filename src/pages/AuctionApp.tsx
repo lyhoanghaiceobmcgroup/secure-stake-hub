@@ -147,7 +147,7 @@ const AuctionApp: React.FC = () => {
           <AuctionListing onSelectRound={handleSelectRound} />
         ) : viewMode === 'detailed' && selectedRound ? (
           (() => {
-            const detailedData = getDetailedAuctionByRoundId(selectedRound.id);
+            const detailedData = getDetailedAuctionByRoundIdLocal(selectedRound.id);
             return detailedData ? (
               <DetailedAuctionView 
                 auctionData={detailedData}

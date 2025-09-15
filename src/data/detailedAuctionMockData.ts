@@ -7,6 +7,7 @@ interface DetailedAuctionData {
     name: string;
     sector: string;
     gtrust: number;
+    trustScore?: number;
   };
   opportunity: {
     gid: string;
@@ -17,13 +18,17 @@ interface DetailedAuctionData {
     round_id: string;
     start_at: string;
     end_at: string;
+    endTime?: string;
     target_vnd: number;
+    targetAmount?: number;
     raised_vnd: number;
+    currentAmount?: number;
     cover: number;
     delta_max: number;
     delta_floor: number;
     delta_now: number;
     r_offer: number;
+    interestRate?: number;
     lot_vnd: number;
     cap_pct: number;
     status: string;
@@ -32,6 +37,12 @@ interface DetailedAuctionData {
       title: string;
       doc_hash: string;
     }>;
+  };
+  currentMetrics?: {
+    deltaNow: number;
+    rOffer: number;
+    cover: number;
+    raised: number;
   };
   my_precheck: {
     kyc: string;
