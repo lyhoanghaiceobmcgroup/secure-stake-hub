@@ -27,6 +27,8 @@ interface LoginFormData {
 }
 
 const Login = () => {
+  // Define step to avoid ReferenceError from any stray references
+  const step = 0;
   const navigate = useNavigate();
   const { signIn, signUp, user, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
