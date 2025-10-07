@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import InvestorApp from "./pages/InvestorApp";
 import BusinessApp from "./pages/BusinessApp";
 import AuctionApp from "./pages/AuctionApp";
+import AdminInvestorApp from "./pages/AdminInvestorApp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/investor" element={<InvestorApp />} />
               <Route path="/investor/auction" element={<AuctionApp />} />
               <Route path="/business" element={<BusinessApp />} />
+              <Route path="/admin/investor" element={<AdminInvestorApp />} />
               <Route path="/portfolio" element={<PortfolioRedirect />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
