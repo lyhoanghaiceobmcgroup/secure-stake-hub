@@ -115,11 +115,20 @@ const Landing = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center gap-6">
               <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-navy transition-colors">Tính năng</a>
               <a href="#about" className="text-sm font-medium text-muted-foreground hover:text-navy transition-colors">Về chúng tôi</a>
               <a href="#contact" className="text-sm font-medium text-muted-foreground hover:text-navy transition-colors">Liên hệ</a>
+              <Button size="sm" variant="ghost" onClick={() => navigate('/investor')} className="text-golden hover:text-golden-light">
+                Demo Investor
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => navigate('/business')} className="text-navy hover:text-navy-light">
+                Demo Business
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => navigate('/admin/investor')} className="text-destructive hover:text-destructive/80">
+                Demo Admin
+              </Button>
             </nav>
             <Button variant="outline" size="sm" onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')} className="gap-2 hover:scale-105 transition-transform">
               <Languages className="w-4 h-4" />
