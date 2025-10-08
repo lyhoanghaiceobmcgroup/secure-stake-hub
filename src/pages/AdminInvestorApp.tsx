@@ -4,10 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, TrendingUp, FileText, Search, RefreshCw, Eye, Edit, Activity, Clock, DollarSign, AlertCircle, CheckCircle, XCircle, Filter, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Shield, Users, TrendingUp, FileText, Search, RefreshCw, Eye, Edit, Activity, Clock, DollarSign, AlertCircle, CheckCircle, XCircle, Filter, Download, Plus, Trash2, Building2, Calendar, PieChart } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
@@ -46,6 +49,25 @@ interface InvestmentDetail {
   expected_return: number;
 }
 
+interface InvestmentOpportunity {
+  id: string;
+  companyName: string;
+  projectName: string;
+  description: string;
+  targetRate: number;
+  payoutFrequency: string;
+  minInvestment: number;
+  totalTarget: number;
+  raised: number;
+  sector: string;
+  duration: string;
+  uyTinScore: number;
+  riskLevel: string;
+  deadline: string;
+  status: string;
+  created_at?: string;
+}
+
 const AdminInvestorApp = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -53,10 +75,13 @@ const AdminInvestorApp = () => {
   const [investors, setInvestors] = useState<InvestorData[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [investments, setInvestments] = useState<InvestmentDetail[]>([]);
+  const [opportunities, setOpportunities] = useState<InvestmentOpportunity[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInvestor, setSelectedInvestor] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [kycFilter, setKycFilter] = useState<string>('all');
+  const [isOpportunityDialogOpen, setIsOpportunityDialogOpen] = useState(false);
+  const [editingOpportunity, setEditingOpportunity] = useState<InvestmentOpportunity | null>(null);
   const [stats, setStats] = useState({
     totalInvestors: 0,
     totalInvested: 0,
@@ -94,7 +119,8 @@ const AdminInvestorApp = () => {
     await Promise.all([
       loadInvestorsData(),
       loadActivitiesData(),
-      loadInvestmentsData()
+      loadInvestmentsData(),
+      loadOpportunitiesData()
     ]);
   };
 
@@ -328,6 +354,138 @@ const AdminInvestorApp = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const loadOpportunitiesData = async () => {
+    try {
+      // Mock data - in production this would fetch from Supabase
+      const mockOpportunities: InvestmentOpportunity[] = [
+        {
+          id: "1",
+          companyName: "Green Energy Solutions JSC",
+          projectName: "Dự án Solar Farm Bình Thuận",
+          description: "Dự án năng lượng mặt trời quy mô 50MW tại tỉnh Bình Thuận với công nghệ tiên tiến và cam kết mua điện 20 năm.",
+          targetRate: 12.5,
+          payoutFrequency: 'quarterly',
+          minInvestment: 50000000,
+          totalTarget: 2000000000,
+          raised: 1200000000,
+          sector: "Năng lượng",
+          duration: "24 tháng",
+          uyTinScore: 88,
+          riskLevel: 'medium',
+          deadline: "2025-01-31",
+          status: 'open',
+        },
+        {
+          id: "2", 
+          companyName: "Tech Manufacturing Co.",
+          projectName: "Nhà máy sản xuất linh kiện điện tử",
+          description: "Mở rộng dây chuyền sản xuất linh kiện điện tử phục vụ xuất khẩu với đơn hàng đã có sẵn từ các khách hàng quốc tế.",
+          targetRate: 15.8,
+          payoutFrequency: 'monthly',
+          minInvestment: 100000000,
+          totalTarget: 5000000000,
+          raised: 3500000000,
+          sector: "Công nghệ",
+          duration: "18 tháng",
+          uyTinScore: 92,
+          riskLevel: 'low',
+          deadline: "2025-02-15",
+          status: 'closing_soon',
+        },
+        {
+          id: "3",
+          companyName: "Real Estate Development Ltd.",
+          projectName: "Khu đô thị sinh thái Eco Park",
+          description: "Phát triển khu đô thị sinh thái cao cấp tại vùng ven thành phố với đầy đủ tiện ích và không gian xanh.",
+          targetRate: 18.2,
+          payoutFrequency: 'yearly',
+          minInvestment: 200000000,
+          totalTarget: 10000000000,
+          raised: 2000000000,
+          sector: "Bất động sản",
+          duration: "36 tháng",
+          uyTinScore: 76,
+          riskLevel: 'high',
+          deadline: "2025-03-01",
+          status: 'open',
+        },
+        {
+          id: "4",
+          companyName: "Fintech Innovation Corp.",
+          projectName: "Nền tảng thanh toán số AI",
+          description: "Phát triển nền tảng thanh toán số tích hợp AI để tối ưu hóa trải nghiệm người dùng và bảo mật.",
+          targetRate: 22.5,
+          payoutFrequency: 'quarterly',
+          minInvestment: 50000000,
+          totalTarget: 2000000000,
+          raised: 800000000,
+          sector: "Fintech",
+          duration: "24 tháng",
+          uyTinScore: 88,
+          riskLevel: 'medium',
+          deadline: "2025-02-15",
+          status: 'open',
+        }
+      ];
+      setOpportunities(mockOpportunities);
+    } catch (error) {
+      console.error('Error loading opportunities:', error);
+      toast.error('Không thể tải dữ liệu dự án');
+    }
+  };
+
+  const handleCreateOpportunity = () => {
+    setEditingOpportunity(null);
+    setIsOpportunityDialogOpen(true);
+  };
+
+  const handleEditOpportunity = (opportunity: InvestmentOpportunity) => {
+    setEditingOpportunity(opportunity);
+    setIsOpportunityDialogOpen(true);
+  };
+
+  const handleDeleteOpportunity = (id: string) => {
+    if (confirm('Bạn có chắc chắn muốn xóa dự án này?')) {
+      setOpportunities(prev => prev.filter(opp => opp.id !== id));
+      toast.success('Đã xóa dự án thành công');
+    }
+  };
+
+  const handleSaveOpportunity = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const opportunityData: InvestmentOpportunity = {
+      id: editingOpportunity?.id || `${Date.now()}`,
+      companyName: formData.get('companyName') as string,
+      projectName: formData.get('projectName') as string,
+      description: formData.get('description') as string,
+      targetRate: parseFloat(formData.get('targetRate') as string),
+      payoutFrequency: formData.get('payoutFrequency') as string,
+      minInvestment: parseFloat(formData.get('minInvestment') as string),
+      totalTarget: parseFloat(formData.get('totalTarget') as string),
+      raised: parseFloat(formData.get('raised') as string) || 0,
+      sector: formData.get('sector') as string,
+      duration: formData.get('duration') as string,
+      uyTinScore: parseFloat(formData.get('uyTinScore') as string),
+      riskLevel: formData.get('riskLevel') as string,
+      deadline: formData.get('deadline') as string,
+      status: formData.get('status') as string,
+      created_at: editingOpportunity?.created_at || new Date().toISOString()
+    };
+
+    if (editingOpportunity) {
+      setOpportunities(prev => prev.map(opp => opp.id === editingOpportunity.id ? opportunityData : opp));
+      toast.success('Đã cập nhật dự án thành công');
+    } else {
+      setOpportunities(prev => [...prev, opportunityData]);
+      toast.success('Đã tạo dự án mới thành công');
+    }
+    
+    setIsOpportunityDialogOpen(false);
+    setEditingOpportunity(null);
+  };
+
   const exportToCSV = () => {
     const csvContent = [
       ['Họ Tên', 'Email', 'SĐT', 'Tổng Đầu Tư', 'Tổng Nhận', 'Đầu Tư Active', 'KYC'],
@@ -349,6 +507,20 @@ const AdminInvestorApp = () => {
     a.download = `investors_${new Date().toISOString()}.csv`;
     a.click();
     toast.success('Đã xuất dữ liệu thành công');
+  };
+
+  const getRiskBadgeVariant = (risk: string): "default" | "secondary" | "destructive" | "outline" => {
+    if (risk === 'low') return 'default';
+    if (risk === 'medium') return 'secondary';
+    if (risk === 'high') return 'destructive';
+    return 'outline';
+  };
+
+  const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+    if (status === 'open') return 'default';
+    if (status === 'closing_soon') return 'secondary';
+    if (status === 'closed') return 'outline';
+    return 'outline';
   };
 
   if (loading) {
@@ -527,7 +699,7 @@ const AdminInvestorApp = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="investors" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="investors">
               <Users className="h-4 w-4 mr-2" />
               Danh Sách Investors
@@ -535,6 +707,10 @@ const AdminInvestorApp = () => {
             <TabsTrigger value="investments">
               <TrendingUp className="h-4 w-4 mr-2" />
               Quản Lý Đầu Tư
+            </TabsTrigger>
+            <TabsTrigger value="opportunities">
+              <Building2 className="h-4 w-4 mr-2" />
+              Quản Lý Dự Án
             </TabsTrigger>
             <TabsTrigger value="kyc">
               <Shield className="h-4 w-4 mr-2" />
@@ -694,6 +870,301 @@ const AdminInvestorApp = () => {
                             <Button variant="ghost" size="sm">
                               <Eye className="h-4 w-4" />
                             </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="opportunities" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div>
+                    <CardTitle>Quản Lý Dự Án Đầu Tư ({opportunities.length})</CardTitle>
+                    <CardDescription>Quản lý các cơ hội đầu tư hiển thị cho investors</CardDescription>
+                  </div>
+                  <Dialog open={isOpportunityDialogOpen} onOpenChange={setIsOpportunityDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button onClick={handleCreateOpportunity}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Tạo Dự Án Mới
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingOpportunity ? 'Chỉnh Sửa Dự Án' : 'Tạo Dự Án Mới'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleSaveOpportunity} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="companyName">Tên Công Ty *</Label>
+                            <Input 
+                              id="companyName" 
+                              name="companyName" 
+                              defaultValue={editingOpportunity?.companyName}
+                              required 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="projectName">Tên Dự Án *</Label>
+                            <Input 
+                              id="projectName" 
+                              name="projectName" 
+                              defaultValue={editingOpportunity?.projectName}
+                              required 
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="description">Mô Tả *</Label>
+                          <Textarea 
+                            id="description" 
+                            name="description" 
+                            rows={3}
+                            defaultValue={editingOpportunity?.description}
+                            required 
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="sector">Lĩnh Vực *</Label>
+                            <Input 
+                              id="sector" 
+                              name="sector" 
+                              defaultValue={editingOpportunity?.sector}
+                              placeholder="VD: Năng lượng, Công nghệ"
+                              required 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="duration">Thời Gian *</Label>
+                            <Input 
+                              id="duration" 
+                              name="duration" 
+                              defaultValue={editingOpportunity?.duration}
+                              placeholder="VD: 24 tháng"
+                              required 
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="targetRate">Lãi Suất Mục Tiêu (%) *</Label>
+                            <Input 
+                              id="targetRate" 
+                              name="targetRate" 
+                              type="number"
+                              step="0.1"
+                              defaultValue={editingOpportunity?.targetRate}
+                              required 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="uyTinScore">Điểm Uy Tín *</Label>
+                            <Input 
+                              id="uyTinScore" 
+                              name="uyTinScore" 
+                              type="number"
+                              min="0"
+                              max="100"
+                              defaultValue={editingOpportunity?.uyTinScore}
+                              required 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="riskLevel">Mức Rủi Ro *</Label>
+                            <Select name="riskLevel" defaultValue={editingOpportunity?.riskLevel || 'medium'}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="low">Thấp</SelectItem>
+                                <SelectItem value="medium">Trung bình</SelectItem>
+                                <SelectItem value="high">Cao</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="minInvestment">Đầu Tư Tối Thiểu (VND) *</Label>
+                            <Input 
+                              id="minInvestment" 
+                              name="minInvestment" 
+                              type="number"
+                              defaultValue={editingOpportunity?.minInvestment}
+                              required 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="totalTarget">Mục Tiêu Tổng (VND) *</Label>
+                            <Input 
+                              id="totalTarget" 
+                              name="totalTarget" 
+                              type="number"
+                              defaultValue={editingOpportunity?.totalTarget}
+                              required 
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="raised">Đã Huy Động (VND)</Label>
+                            <Input 
+                              id="raised" 
+                              name="raised" 
+                              type="number"
+                              defaultValue={editingOpportunity?.raised || 0}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="payoutFrequency">Tần Suất Chi Trả *</Label>
+                            <Select name="payoutFrequency" defaultValue={editingOpportunity?.payoutFrequency || 'quarterly'}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="monthly">Hàng tháng</SelectItem>
+                                <SelectItem value="quarterly">Hàng quý</SelectItem>
+                                <SelectItem value="yearly">Hàng năm</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="status">Trạng Thái *</Label>
+                            <Select name="status" defaultValue={editingOpportunity?.status || 'open'}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="open">Đang mở</SelectItem>
+                                <SelectItem value="closing_soon">Sắp đóng</SelectItem>
+                                <SelectItem value="closed">Đã đóng</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="deadline">Hạn Chót *</Label>
+                          <Input 
+                            id="deadline" 
+                            name="deadline" 
+                            type="date"
+                            defaultValue={editingOpportunity?.deadline}
+                            required 
+                          />
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-4">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setIsOpportunityDialogOpen(false)}
+                          >
+                            Hủy
+                          </Button>
+                          <Button type="submit">
+                            {editingOpportunity ? 'Cập Nhật' : 'Tạo Mới'}
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Công Ty / Dự Án</TableHead>
+                      <TableHead>Lĩnh Vực</TableHead>
+                      <TableHead>Lãi Suất</TableHead>
+                      <TableHead>Huy Động / Mục Tiêu</TableHead>
+                      <TableHead>Rủi Ro</TableHead>
+                      <TableHead>Trạng Thái</TableHead>
+                      <TableHead>Hạn Chót</TableHead>
+                      <TableHead>Thao Tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {opportunities.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          Chưa có dự án nào. Nhấn "Tạo Dự Án Mới" để thêm dự án đầu tiên.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      opportunities.map((opp) => (
+                        <TableRow key={opp.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-semibold">{opp.companyName}</p>
+                              <p className="text-sm text-muted-foreground">{opp.projectName}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{opp.sector}</Badge>
+                          </TableCell>
+                          <TableCell className="font-semibold text-green-600">
+                            {opp.targetRate}%
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="font-semibold">{formatCurrency(opp.raised)}</span>
+                                <span className="text-muted-foreground">/</span>
+                                <span>{formatCurrency(opp.totalTarget)}</span>
+                              </div>
+                              <Progress value={(opp.raised / opp.totalTarget) * 100} className="h-2" />
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getRiskBadgeVariant(opp.riskLevel)}>
+                              {opp.riskLevel === 'low' ? 'Thấp' : opp.riskLevel === 'medium' ? 'TB' : 'Cao'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(opp.status)}>
+                              {opp.status === 'open' ? 'Mở' : opp.status === 'closing_soon' ? 'Sắp đóng' : 'Đã đóng'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(opp.deadline).toLocaleDateString('vi-VN')}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditOpportunity(opp)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() => handleDeleteOpportunity(opp.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
