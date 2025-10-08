@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, TrendingUp, FileText, Search, RefreshCw, Eye, Edit } from 'lucide-react';
+import { Shield, Users, TrendingUp, FileText, Search, RefreshCw, Eye, Edit, Activity, Clock, DollarSign, AlertCircle, CheckCircle, XCircle, Filter, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 
 interface InvestorData {
   id: string;
@@ -20,6 +22,28 @@ interface InvestorData {
   active_investments: number;
   kyc_status: string;
   created_at: string;
+  last_activity?: string;
+  wallet_balance?: number;
+}
+
+interface ActivityLog {
+  id: string;
+  user_id: string;
+  user_name: string;
+  action: string;
+  description: string;
+  timestamp: string;
+  status: 'success' | 'pending' | 'failed';
+}
+
+interface InvestmentDetail {
+  id: string;
+  investor_name: string;
+  company_name: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  expected_return: number;
 }
 
 const AdminInvestorApp = () => {
@@ -27,21 +51,52 @@ const AdminInvestorApp = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [investors, setInvestors] = useState<InvestorData[]>([]);
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [investments, setInvestments] = useState<InvestmentDetail[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInvestor, setSelectedInvestor] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [kycFilter, setKycFilter] = useState<string>('all');
   const [stats, setStats] = useState({
     totalInvestors: 0,
     totalInvested: 0,
     totalPayouts: 0,
-    activeInvestments: 0
+    activeInvestments: 0,
+    pendingKYC: 0,
+    totalTransactions: 0,
+    avgInvestment: 0,
+    successRate: 0
   });
 
   useEffect(() => {
     // TEMPORARY: Disable auth check for demo
     setIsAdmin(true);
     setLoading(false);
-    loadInvestorsData();
+    loadAllData();
+    
+    // Set up real-time subscription for activities
+    const channel = supabase
+      .channel('admin-activities')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'intents' }, () => {
+        loadActivitiesData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+        loadActivitiesData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  const loadAllData = async () => {
+    await Promise.all([
+      loadInvestorsData(),
+      loadActivitiesData(),
+      loadInvestmentsData()
+    ]);
+  };
 
   const loadInvestorsData = async () => {
     try {
@@ -95,17 +150,117 @@ const AdminInvestorApp = () => {
       setInvestors(investorsWithStats);
 
       // Calculate overall stats
-      const totalStats = investorsWithStats.reduce((acc, inv) => ({
-        totalInvestors: acc.totalInvestors + 1,
-        totalInvested: acc.totalInvested + inv.total_invested,
-        totalPayouts: acc.totalPayouts + inv.total_payouts,
-        activeInvestments: acc.activeInvestments + inv.active_investments
-      }), { totalInvestors: 0, totalInvested: 0, totalPayouts: 0, activeInvestments: 0 });
+      const pendingKYC = investorsWithStats.filter(inv => inv.kyc_status === 'pending').length;
+      const totalTransactions = investorsWithStats.reduce((sum, inv) => sum + inv.active_investments, 0);
+      const avgInvestment = investorsWithStats.length > 0 
+        ? investorsWithStats.reduce((sum, inv) => sum + inv.total_invested, 0) / investorsWithStats.length 
+        : 0;
+      
+      const totalStats = {
+        totalInvestors: investorsWithStats.length,
+        totalInvested: investorsWithStats.reduce((sum, inv) => sum + inv.total_invested, 0),
+        totalPayouts: investorsWithStats.reduce((sum, inv) => sum + inv.total_payouts, 0),
+        activeInvestments: investorsWithStats.reduce((sum, inv) => sum + inv.active_investments, 0),
+        pendingKYC,
+        totalTransactions,
+        avgInvestment,
+        successRate: 94.5 // Mock data - would calculate from actual success/fail rates
+      };
 
       setStats(totalStats);
     } catch (error) {
       console.error('Error loading investors:', error);
       toast.error('Không thể tải dữ liệu investors');
+    }
+  };
+
+  const loadActivitiesData = async () => {
+    try {
+      // Get recent intents as activities
+      const { data: intentsData } = await supabase
+        .from('intents')
+        .select(`
+          id,
+          amount,
+          status,
+          created_at,
+          user_id,
+          profiles!inner(full_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      // Get recent transactions
+      const { data: transactionsData } = await supabase
+        .from('transactions')
+        .select(`
+          id,
+          amount,
+          type,
+          status,
+          created_at,
+          user_id,
+          profiles!inner(full_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      // Combine and format activities
+      const activities: ActivityLog[] = [
+        ...(intentsData || []).map(intent => ({
+          id: intent.id,
+          user_id: intent.user_id,
+          user_name: (intent.profiles as any)?.full_name || 'N/A',
+          action: 'investment',
+          description: `Đầu tư ${formatCurrency(intent.amount || 0)}`,
+          timestamp: intent.created_at,
+          status: intent.status === 'signed_all' ? 'success' as const : 'pending' as const
+        })),
+        ...(transactionsData || []).map(tx => ({
+          id: tx.id,
+          user_id: tx.user_id,
+          user_name: (tx.profiles as any)?.full_name || 'N/A',
+          action: tx.type || 'transaction',
+          description: `${tx.type === 'distribution' ? 'Nhận' : 'Giao dịch'} ${formatCurrency(tx.amount || 0)}`,
+          timestamp: tx.created_at,
+          status: tx.status === 'completed' ? 'success' as const : tx.status === 'failed' ? 'failed' as const : 'pending' as const
+        }))
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 30);
+
+      setActivities(activities);
+    } catch (error) {
+      console.error('Error loading activities:', error);
+    }
+  };
+
+  const loadInvestmentsData = async () => {
+    try {
+      const { data: intentsData } = await supabase
+        .from('intents')
+        .select(`
+          id,
+          amount,
+          status,
+          created_at,
+          user_id,
+          profiles!inner(full_name),
+          opportunities!inner(company_name, expected_roi)
+        `)
+        .order('created_at', { ascending: false });
+
+      const investments: InvestmentDetail[] = (intentsData || []).map(intent => ({
+        id: intent.id,
+        investor_name: (intent.profiles as any)?.full_name || 'N/A',
+        company_name: (intent.opportunities as any)?.company_name || 'N/A',
+        amount: intent.amount || 0,
+        status: intent.status || 'pending',
+        created_at: intent.created_at,
+        expected_return: ((intent.opportunities as any)?.expected_roi || 0) * (intent.amount || 0) / 100
+      }));
+
+      setInvestments(investments);
+    } catch (error) {
+      console.error('Error loading investments:', error);
     }
   };
 
@@ -122,11 +277,79 @@ const AdminInvestorApp = () => {
     return <Badge variant={variants[status] || 'outline'}>{status}</Badge>;
   };
 
-  const filteredInvestors = investors.filter(inv =>
-    inv.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    inv.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    inv.phone_number.includes(searchQuery)
-  );
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getActivityIcon = (action: string) => {
+    switch (action) {
+      case 'investment':
+        return <TrendingUp className="h-4 w-4" />;
+      case 'distribution':
+        return <DollarSign className="h-4 w-4" />;
+      default:
+        return <Activity className="h-4 w-4" />;
+    }
+  };
+
+  const getActivityColor = (status: string) => {
+    switch (status) {
+      case 'success':
+        return 'text-green-600';
+      case 'failed':
+        return 'text-red-600';
+      default:
+        return 'text-yellow-600';
+    }
+  };
+
+  const filteredInvestors = investors.filter(inv => {
+    const matchesSearch = inv.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inv.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inv.phone_number.includes(searchQuery);
+    
+    const matchesKYC = kycFilter === 'all' || inv.kyc_status === kycFilter;
+    
+    return matchesSearch && matchesKYC;
+  });
+
+  const filteredInvestments = investments.filter(inv => {
+    const matchesSearch = inv.investor_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inv.company_name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const exportToCSV = () => {
+    const csvContent = [
+      ['Họ Tên', 'Email', 'SĐT', 'Tổng Đầu Tư', 'Tổng Nhận', 'Đầu Tư Active', 'KYC'],
+      ...filteredInvestors.map(inv => [
+        inv.full_name,
+        inv.email,
+        inv.phone_number,
+        inv.total_invested,
+        inv.total_payouts,
+        inv.active_investments,
+        inv.kyc_status
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `investors_${new Date().toISOString()}.csv`;
+    a.click();
+    toast.success('Đã xuất dữ liệu thành công');
+  };
 
   if (loading) {
     return (
@@ -170,8 +393,8 @@ const AdminInvestorApp = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        {/* Enhanced Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Tổng Investors</CardTitle>
@@ -204,38 +427,152 @@ const AdminInvestorApp = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Đầu Tư Đang Hoạt Động</CardTitle>
+              <CardTitle className="text-sm font-medium">Đầu Tư Hoạt Động</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.activeInvestments}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                +{stats.totalTransactions} giao dịch
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">KYC Chờ Duyệt</CardTitle>
+              <AlertCircle className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.pendingKYC}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Cần xử lý
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Trung Bình Đầu Tư</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(stats.avgInvestment)}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Mỗi investor
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tỷ Lệ Thành Công</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.successRate}%</div>
+              <Progress value={stats.successRate} className="mt-2" />
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content */}
+        {/* Activity Timeline Section */}
+        <div className="mb-8">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Hoạt Động Gần Đây
+                  </CardTitle>
+                  <CardDescription>Theo dõi luồng hoạt động của tất cả tài khoản</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={loadActivitiesData}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Làm mới
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {activities.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">Chưa có hoạt động nào</p>
+                ) : (
+                  activities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+                      <div className={`mt-1 ${getActivityColor(activity.status)}`}>
+                        {getActivityIcon(activity.action)}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">{activity.user_name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {formatDate(activity.timestamp)}
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{activity.description}</p>
+                        <Badge variant={activity.status === 'success' ? 'default' : activity.status === 'failed' ? 'destructive' : 'secondary'} className="text-xs">
+                          {activity.status === 'success' ? 'Thành công' : activity.status === 'failed' ? 'Thất bại' : 'Đang xử lý'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Tabs */}
         <Tabs defaultValue="investors" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="investors">Danh Sách Investors</TabsTrigger>
-            <TabsTrigger value="kyc">Xác Thực KYC</TabsTrigger>
-            <TabsTrigger value="investments">Quản Lý Đầu Tư</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="investors">
+              <Users className="h-4 w-4 mr-2" />
+              Danh Sách Investors
+            </TabsTrigger>
+            <TabsTrigger value="investments">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Quản Lý Đầu Tư
+            </TabsTrigger>
+            <TabsTrigger value="kyc">
+              <Shield className="h-4 w-4 mr-2" />
+              Xác Thực KYC
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="investors" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Tất Cả Investors</CardTitle>
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <CardTitle>Tất Cả Investors ({filteredInvestors.length})</CardTitle>
+                  <div className="flex items-center gap-2 flex-wrap">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Tìm kiếm theo tên, email, SĐT..."
+                        placeholder="Tìm kiếm..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 w-80"
+                        className="pl-9 w-60"
                       />
                     </div>
+                    <Select value={kycFilter} onValueChange={setKycFilter}>
+                      <SelectTrigger className="w-40">
+                        <Filter className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Lọc KYC" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả KYC</SelectItem>
+                        <SelectItem value="approved">Đã duyệt</SelectItem>
+                        <SelectItem value="pending">Chờ duyệt</SelectItem>
+                        <SelectItem value="rejected">Từ chối</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="sm" onClick={exportToCSV}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Xuất CSV
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -288,24 +625,139 @@ const AdminInvestorApp = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="kyc">
+          <TabsContent value="investments" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Xác Thực KYC</CardTitle>
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div>
+                    <CardTitle>Quản Lý Đầu Tư ({filteredInvestments.length})</CardTitle>
+                    <CardDescription>Theo dõi tất cả các khoản đầu tư và trạng thái</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-40">
+                        <Filter className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Lọc trạng thái" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="signed_all">Đã ký</SelectItem>
+                        <SelectItem value="investor_signed">Chờ doanh nghiệp</SelectItem>
+                        <SelectItem value="issuer_signed">Chờ investor</SelectItem>
+                        <SelectItem value="pending">Chờ xử lý</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Chức năng quản lý KYC đang được phát triển...</p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Investor</TableHead>
+                      <TableHead>Doanh Nghiệp</TableHead>
+                      <TableHead>Số Tiền</TableHead>
+                      <TableHead>Lợi Nhuận Dự Kiến</TableHead>
+                      <TableHead>Trạng Thái</TableHead>
+                      <TableHead>Ngày Tạo</TableHead>
+                      <TableHead>Thao Tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredInvestments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          Không tìm thấy dữ liệu đầu tư
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredInvestments.map((investment) => (
+                        <TableRow key={investment.id}>
+                          <TableCell className="font-medium">{investment.investor_name}</TableCell>
+                          <TableCell>{investment.company_name}</TableCell>
+                          <TableCell className="font-semibold">{formatCurrency(investment.amount)}</TableCell>
+                          <TableCell className="text-green-600">+{formatCurrency(investment.expected_return)}</TableCell>
+                          <TableCell>
+                            <Badge variant={
+                              investment.status === 'signed_all' ? 'default' : 
+                              investment.status.includes('signed') ? 'secondary' : 'outline'
+                            }>
+                              {investment.status === 'signed_all' ? 'Hoàn tất' : 
+                               investment.status === 'investor_signed' ? 'Chờ DN ký' :
+                               investment.status === 'issuer_signed' ? 'Chờ investor ký' : 'Chờ xử lý'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(investment.created_at)}
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="investments">
+          <TabsContent value="kyc" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Quản Lý Đầu Tư</CardTitle>
+                <div>
+                  <CardTitle>Xác Thực KYC ({stats.pendingKYC} chờ duyệt)</CardTitle>
+                  <CardDescription>Quản lý và phê duyệt yêu cầu xác thực danh tính</CardDescription>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Chức năng quản lý đầu tư đang được phát triển...</p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Họ Tên</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Số Điện Thoại</TableHead>
+                      <TableHead>Trạng Thái KYC</TableHead>
+                      <TableHead>Ngày Đăng Ký</TableHead>
+                      <TableHead>Thao Tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {investors.filter(inv => inv.kyc_status === 'pending').length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          Không có yêu cầu KYC nào đang chờ xử lý
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      investors.filter(inv => inv.kyc_status === 'pending').map((investor) => (
+                        <TableRow key={investor.id}>
+                          <TableCell className="font-medium">{investor.full_name}</TableCell>
+                          <TableCell>{investor.email}</TableCell>
+                          <TableCell>{investor.phone_number}</TableCell>
+                          <TableCell>{getKYCBadge(investor.kyc_status)}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(investor.created_at)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" className="text-green-600">
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Duyệt
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-red-600">
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Từ chối
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </TabsContent>
