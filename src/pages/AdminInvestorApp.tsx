@@ -10,10 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Shield, Users, TrendingUp, FileText, Search, RefreshCw, Eye, Edit, Activity, Clock, DollarSign, AlertCircle, CheckCircle, XCircle, Filter, Download, Plus, Trash2, Building2, Calendar, PieChart } from 'lucide-react';
+import { Shield, Users, TrendingUp, FileText, Search, RefreshCw, Eye, Edit, Activity, Clock, DollarSign, AlertCircle, CheckCircle, XCircle, Filter, Download, Plus, Trash2, Building2, Calendar, PieChart, Gavel, BookOpen, LayoutDashboard, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { AuctionRound, BidOrder } from '@/types/auction';
+import PortfolioService, { InvestmentData } from '@/services/portfolioService';
 
 interface InvestorData {
   id: string;
@@ -82,6 +84,20 @@ const AdminInvestorApp = () => {
   const [kycFilter, setKycFilter] = useState<string>('all');
   const [isOpportunityDialogOpen, setIsOpportunityDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<InvestmentOpportunity | null>(null);
+  
+  // Admin Menu State
+  const [adminSection, setAdminSection] = useState<'dashboard' | 'opportunities' | 'auctions' | 'portfolios'>('dashboard');
+  
+  // Auction Management State
+  const [auctions, setAuctions] = useState<AuctionRound[]>([]);
+  const [auctionBids, setAuctionBids] = useState<BidOrder[]>([]);
+  const [isAuctionDialogOpen, setIsAuctionDialogOpen] = useState(false);
+  const [editingAuction, setEditingAuction] = useState<AuctionRound | null>(null);
+  
+  // Portfolio Management State
+  const [portfolios, setPortfolios] = useState<InvestmentData[]>([]);
+  const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
+  const [editingPortfolio, setEditingPortfolio] = useState<InvestmentData | null>(null);
   const [stats, setStats] = useState({
     totalInvestors: 0,
     totalInvested: 0,
@@ -120,8 +136,177 @@ const AdminInvestorApp = () => {
       loadInvestorsData(),
       loadActivitiesData(),
       loadInvestmentsData(),
-      loadOpportunitiesData()
+      loadOpportunitiesData(),
+      loadAuctionsData(),
+      loadPortfoliosData()
     ]);
+  };
+
+  const loadAuctionsData = async () => {
+    // Mock auction data - Replace with real API call
+    const mockAuctions: AuctionRound[] = [
+      {
+        id: "1",
+        roundId: "AUC-2025-001",
+        gid: "GID-001",
+        company: "TechViet JSC",
+        businessName: "TechViet Corporation",
+        packageName: "Gói A - Mở rộng thị trường",
+        termMonths: 24,
+        startAt: "2025-10-01T00:00:00Z",
+        endAt: "2025-10-15T23:59:59Z",
+        baseRate: 8.5,
+        deltaMax: 2.5,
+        deltaFloor: 0.5,
+        a: 0.02,
+        b: 0.05,
+        targetAmount: 5000000000,
+        raised: 3500000000,
+        cover: 1.4,
+        deltaNow: 1.2,
+        rOffer: 9.7,
+        roundIndex: 1,
+        roundCount: 3,
+        status: 'open',
+        docs: [],
+        gTrust: 88,
+        antiSnipingExtensions: 0,
+        currentPrice: 9.7,
+        priceDecrement: 0.1,
+        reservePrice: 8.5,
+        totalBids: 45,
+        participantCount: 32,
+        interestRate: 9.7,
+        currentAmount: 3500000000,
+        trustScore: 88,
+        lotSize: 10000000,
+        capPercentage: 20
+      },
+      {
+        id: "2",
+        roundId: "AUC-2025-002",
+        gid: "GID-002",
+        company: "GreenEnergy Corp",
+        businessName: "Green Energy Solutions",
+        packageName: "Trang trại năng lượng mặt trời",
+        termMonths: 36,
+        startAt: "2025-10-05T00:00:00Z",
+        endAt: "2025-10-20T23:59:59Z",
+        baseRate: 9.0,
+        deltaMax: 3.0,
+        deltaFloor: 0.8,
+        a: 0.015,
+        b: 0.04,
+        targetAmount: 8000000000,
+        raised: 6500000000,
+        cover: 1.6,
+        deltaNow: 1.5,
+        rOffer: 10.5,
+        roundIndex: 2,
+        roundCount: 4,
+        status: 'open',
+        docs: [],
+        gTrust: 92,
+        antiSnipingExtensions: 0,
+        currentPrice: 10.5,
+        priceDecrement: 0.15,
+        reservePrice: 9.0,
+        totalBids: 68,
+        participantCount: 48,
+        interestRate: 10.5,
+        currentAmount: 6500000000,
+        trustScore: 92,
+        lotSize: 20000000,
+        capPercentage: 15
+      }
+    ];
+    setAuctions(mockAuctions);
+    
+    const mockBids: BidOrder[] = [
+      {
+        id: "1",
+        bidId: "BID-001",
+        roundId: "AUC-2025-001",
+        userId: "user1",
+        userName: "Nguyễn Văn A",
+        amount: 100000000,
+        type: "market",
+        status: "filled",
+        filledAmount: 100000000,
+        clearRate: 9.7,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        idempotencyKey: "key-001",
+        auctionId: "1"
+      },
+      {
+        id: "2",
+        bidId: "BID-002",
+        roundId: "AUC-2025-002",
+        userId: "user2",
+        userName: "Trần Thị B",
+        amount: 200000000,
+        type: "limit",
+        deltaMin: 1.0,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        idempotencyKey: "key-002",
+        auctionId: "2"
+      }
+    ];
+    setAuctionBids(mockBids);
+  };
+
+  const loadPortfoliosData = async () => {
+    // Mock portfolio data - Replace with real API call from PortfolioService
+    const mockPortfolios: InvestmentData[] = [
+      {
+        id: "1",
+        cqid: "CQID-2025-001",
+        companyName: "AquaTech Solutions",
+        packageName: "Gói Standard",
+        sector: "CleanTech",
+        amountContributed: 100000000,
+        joinDate: "2025-06-15",
+        status: "active",
+        targetRate: 9.5,
+        actualRateYTD: 9.2,
+        distributionReceived: 7500000,
+        nextPayoutDate: "2025-11-30",
+        nextPayoutEstimate: 800000,
+        uyTinScore: 92,
+        lastProgressHash: "0x123abc",
+        qrLink: "https://verify.goldenbook.vn/CQID-2025-001",
+        transactionId: "TXN-001",
+        contractHash: "0xabc123",
+        eSignDate: "2025-06-15",
+        effectiveDate: "2025-06-16"
+      },
+      {
+        id: "2",
+        cqid: "CQID-2025-002",
+        companyName: "TechManufacturing Co.",
+        packageName: "Gói Premium",
+        sector: "Technology",
+        amountContributed: 200000000,
+        joinDate: "2025-07-01",
+        status: "active",
+        targetRate: 12.0,
+        actualRateYTD: 12.5,
+        distributionReceived: 18000000,
+        nextPayoutDate: "2025-11-15",
+        nextPayoutEstimate: 2000000,
+        uyTinScore: 95,
+        lastProgressHash: "0x456def",
+        qrLink: "https://verify.goldenbook.vn/CQID-2025-002",
+        transactionId: "TXN-002",
+        contractHash: "0xdef456",
+        eSignDate: "2025-07-01",
+        effectiveDate: "2025-07-02"
+      }
+    ];
+    setPortfolios(mockPortfolios);
   };
 
   const loadInvestorsData = async () => {
