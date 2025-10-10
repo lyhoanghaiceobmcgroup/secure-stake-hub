@@ -16,8 +16,7 @@ import { PortfoliosAdmin } from '@/components/admin/PortfoliosAdmin';
 interface InvestorData {
   id: string;
   full_name: string;
-  email: string;
-  phone_number: string;
+  phone: string;
   total_invested: number;
   total_payouts: number;
   active_investments: number;
@@ -133,6 +132,12 @@ const AdminInvestorApp = () => {
           .eq('user_id', profile.id)
           .eq('type', 'distribution');
 
+        const { data: walletData } = await supabase
+          .from('wallets')
+          .select('available_balance')
+          .eq('user_id', profile.id)
+          .maybeSingle();
+
         const totalInvested = (intentsData || []).reduce((sum, intent) => sum + (intent.amount || 0), 0);
         const totalPayouts = (transactionsData || []).reduce((sum, tx) => sum + (tx.amount || 0), 0);
         const activeInvestments = (intentsData || []).filter(i => i.status === 'signed_all').length;
@@ -140,15 +145,14 @@ const AdminInvestorApp = () => {
         return {
           id: profile.id,
           full_name: profile.full_name || 'N/A',
-          email: profile.email || 'N/A',
-          phone_number: profile.phone_number || 'N/A',
+          phone: profile.phone || 'N/A',
           total_invested: totalInvested,
           total_payouts: totalPayouts,
           active_investments: activeInvestments,
-          kyc_status: profile.kyc_status || 'pending',
+          kyc_status: 'verified',
           created_at: profile.created_at,
-          last_activity: profile.last_activity,
-          wallet_balance: profile.wallet_balance || 0
+          last_activity: profile.updated_at,
+          wallet_balance: walletData?.available_balance || 0
         };
       }));
 
@@ -212,7 +216,7 @@ const AdminInvestorApp = () => {
           action: 'investment',
           description: `Đầu tư ${formatCurrency(intent.amount || 0)}`,
           timestamp: intent.created_at,
-          status: intent.status === 'signed_all' ? 'success' as const : intent.status === 'failed' ? 'failed' as const : 'pending' as const
+          status: intent.status === 'signed_all' ? 'success' as const : intent.status === 'cancelled' ? 'failed' as const : 'pending' as const
         })),
         ...(transactionsData || []).map(tx => ({
           id: tx.id,
