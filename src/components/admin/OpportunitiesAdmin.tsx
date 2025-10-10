@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,36 +9,42 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Edit, Trash2, Building2, Calendar } from "lucide-react";
+import { Plus, Edit, Trash2, Building2, Calendar, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { opportunityService, InvestmentOpportunity } from "@/services/opportunityService";
 
-interface InvestmentOpportunity {
-  id: string;
-  companyName: string;
-  projectName: string;
-  description: string;
-  targetRate: number;
-  payoutFrequency: string;
-  minInvestment: number;
-  totalTarget: number;
-  raised: number;
-  sector: string;
-  duration: string;
-  uyTinScore: number;
-  riskLevel: string;
-  deadline: string;
-  status: string;
-  created_at?: string;
-}
-
-interface OpportunitiesAdminProps {
-  opportunities: InvestmentOpportunity[];
-  onUpdate: (opportunities: InvestmentOpportunity[]) => void;
-}
-
-export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdminProps) => {
+export const OpportunitiesAdmin = () => {
+  const [opportunities, setOpportunities] = useState<InvestmentOpportunity[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<InvestmentOpportunity | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activities, setActivities] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadOpportunities();
+  }, []);
+
+  const loadOpportunities = async () => {
+    try {
+      setLoading(true);
+      const data = await opportunityService.getAll();
+      setOpportunities(data);
+    } catch (error) {
+      console.error('Error loading opportunities:', error);
+      toast.error('Không thể tải dữ liệu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadActivitiesForOpportunity = async (opportunityId: string) => {
+    try {
+      const data = await opportunityService.getOpportunityActivities(opportunityId);
+      setActivities(data);
+    } catch (error) {
+      console.error('Error loading activities:', error);
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
@@ -54,46 +60,54 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa dự án này?')) {
-      onUpdate(opportunities.filter(opp => opp.id !== id));
-      toast.success('Đã xóa dự án thành công');
+      try {
+        await opportunityService.delete(id);
+        toast.success('Đã xóa dự án thành công');
+        loadOpportunities();
+      } catch (error) {
+        toast.error('Không thể xóa dự án');
+      }
     }
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const opportunityData: InvestmentOpportunity = {
-      id: editingOpportunity?.id || `${Date.now()}`,
-      companyName: formData.get('companyName') as string,
-      projectName: formData.get('projectName') as string,
+    const opportunityData: Partial<InvestmentOpportunity> = {
+      company_name: formData.get('companyName') as string,
+      project_name: formData.get('projectName') as string,
       description: formData.get('description') as string,
-      targetRate: parseFloat(formData.get('targetRate') as string),
-      payoutFrequency: formData.get('payoutFrequency') as string,
-      minInvestment: parseFloat(formData.get('minInvestment') as string),
-      totalTarget: parseFloat(formData.get('totalTarget') as string),
+      target_rate: parseFloat(formData.get('targetRate') as string),
+      payout_frequency: formData.get('payoutFrequency') as string,
+      min_investment: parseFloat(formData.get('minInvestment') as string),
+      total_target: parseFloat(formData.get('totalTarget') as string),
       raised: parseFloat(formData.get('raised') as string) || 0,
       sector: formData.get('sector') as string,
       duration: formData.get('duration') as string,
-      uyTinScore: parseFloat(formData.get('uyTinScore') as string),
-      riskLevel: formData.get('riskLevel') as string,
+      uy_tin_score: parseFloat(formData.get('uyTinScore') as string),
+      risk_level: formData.get('riskLevel') as string,
       deadline: formData.get('deadline') as string,
       status: formData.get('status') as string,
-      created_at: editingOpportunity?.created_at || new Date().toISOString()
     };
 
-    if (editingOpportunity) {
-      onUpdate(opportunities.map(opp => opp.id === editingOpportunity.id ? opportunityData : opp));
-      toast.success('Đã cập nhật dự án thành công');
-    } else {
-      onUpdate([...opportunities, opportunityData]);
-      toast.success('Đã tạo dự án mới thành công');
+    try {
+      if (editingOpportunity) {
+        await opportunityService.update(editingOpportunity.id, opportunityData);
+        toast.success('Đã cập nhật dự án thành công');
+      } else {
+        await opportunityService.create(opportunityData);
+        toast.success('Đã tạo dự án mới thành công');
+      }
+      
+      setIsDialogOpen(false);
+      setEditingOpportunity(null);
+      loadOpportunities();
+    } catch (error) {
+      toast.error('Có lỗi xảy ra');
     }
-    
-    setIsDialogOpen(false);
-    setEditingOpportunity(null);
   };
 
   const getRiskBadgeVariant = (risk: string): "default" | "secondary" | "destructive" | "outline" => {
@@ -138,11 +152,11 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="companyName">Tên Công Ty *</Label>
-                    <Input id="companyName" name="companyName" defaultValue={editingOpportunity?.companyName} required />
+                    <Input id="companyName" name="companyName" defaultValue={editingOpportunity?.company_name} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="projectName">Tên Dự Án *</Label>
-                    <Input id="projectName" name="projectName" defaultValue={editingOpportunity?.projectName} required />
+                    <Input id="projectName" name="projectName" defaultValue={editingOpportunity?.project_name} required />
                   </div>
                 </div>
                 
@@ -165,15 +179,15 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="targetRate">Lãi Suất (%) *</Label>
-                    <Input id="targetRate" name="targetRate" type="number" step="0.1" defaultValue={editingOpportunity?.targetRate} required />
+                    <Input id="targetRate" name="targetRate" type="number" step="0.1" defaultValue={editingOpportunity?.target_rate} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="uyTinScore">Điểm Uy Tín *</Label>
-                    <Input id="uyTinScore" name="uyTinScore" type="number" min="0" max="100" defaultValue={editingOpportunity?.uyTinScore} required />
+                    <Input id="uyTinScore" name="uyTinScore" type="number" min="0" max="100" defaultValue={editingOpportunity?.uy_tin_score} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="riskLevel">Mức Rủi Ro *</Label>
-                    <Select name="riskLevel" defaultValue={editingOpportunity?.riskLevel || 'medium'}>
+                    <Select name="riskLevel" defaultValue={editingOpportunity?.risk_level || 'medium'}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="low">Thấp</SelectItem>
@@ -187,11 +201,11 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="minInvestment">Đầu Tư Tối Thiểu *</Label>
-                    <Input id="minInvestment" name="minInvestment" type="number" defaultValue={editingOpportunity?.minInvestment} required />
+                    <Input id="minInvestment" name="minInvestment" type="number" defaultValue={editingOpportunity?.min_investment} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="totalTarget">Mục Tiêu Huy Động *</Label>
-                    <Input id="totalTarget" name="totalTarget" type="number" defaultValue={editingOpportunity?.totalTarget} required />
+                    <Input id="totalTarget" name="totalTarget" type="number" defaultValue={editingOpportunity?.total_target} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="raised">Đã Huy Động *</Label>
@@ -202,7 +216,7 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="payoutFrequency">Tần Suất Phân Phối *</Label>
-                    <Select name="payoutFrequency" defaultValue={editingOpportunity?.payoutFrequency || 'monthly'}>
+                    <Select name="payoutFrequency" defaultValue={editingOpportunity?.payout_frequency || 'monthly'}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="monthly">Hàng tháng</SelectItem>
@@ -238,6 +252,9 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
         </div>
       </CardHeader>
       <CardContent>
+        {loading ? (
+          <div className="text-center py-8">Đang tải...</div>
+        ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -263,25 +280,25 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
                 <TableRow key={opp.id}>
                   <TableCell>
                     <div>
-                      <p className="font-semibold">{opp.companyName}</p>
-                      <p className="text-sm text-muted-foreground">{opp.projectName}</p>
+                      <p className="font-semibold">{opp.company_name}</p>
+                      <p className="text-sm text-muted-foreground">{opp.project_name}</p>
                     </div>
                   </TableCell>
                   <TableCell><Badge variant="outline">{opp.sector}</Badge></TableCell>
-                  <TableCell className="font-semibold text-green-600">{opp.targetRate}%</TableCell>
+                  <TableCell className="font-semibold text-green-600">{opp.target_rate}%</TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-semibold">{formatCurrency(opp.raised)}</span>
                         <span className="text-muted-foreground">/</span>
-                        <span>{formatCurrency(opp.totalTarget)}</span>
+                        <span>{formatCurrency(opp.total_target)}</span>
                       </div>
-                      <Progress value={(opp.raised / opp.totalTarget) * 100} className="h-2" />
+                      <Progress value={(opp.raised / opp.total_target) * 100} className="h-2" />
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getRiskBadgeVariant(opp.riskLevel)}>
-                      {opp.riskLevel === 'low' ? 'Thấp' : opp.riskLevel === 'medium' ? 'TB' : 'Cao'}
+                    <Badge variant={getRiskBadgeVariant(opp.risk_level)}>
+                      {opp.risk_level === 'low' ? 'Thấp' : opp.risk_level === 'medium' ? 'TB' : 'Cao'}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -297,6 +314,14 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => loadActivitiesForOpportunity(opp.id)}
+                        title="Xem hoạt động"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(opp)}>
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -310,6 +335,7 @@ export const OpportunitiesAdmin = ({ opportunities, onUpdate }: OpportunitiesAdm
             )}
           </TableBody>
         </Table>
+        )}
       </CardContent>
     </Card>
   );

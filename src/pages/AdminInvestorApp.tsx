@@ -12,6 +12,7 @@ import PortfolioService, { InvestmentData } from '@/services/portfolioService';
 import { OpportunitiesAdmin } from '@/components/admin/OpportunitiesAdmin';
 import { AuctionsAdmin } from '@/components/admin/AuctionsAdmin';
 import { PortfoliosAdmin } from '@/components/admin/PortfoliosAdmin';
+import { opportunityService } from "@/services/opportunityService";
 
 interface InvestorData {
   id: string;
@@ -36,32 +37,12 @@ interface ActivityLog {
   status: 'success' | 'pending' | 'failed';
 }
 
-interface InvestmentOpportunity {
-  id: string;
-  companyName: string;
-  projectName: string;
-  description: string;
-  targetRate: number;
-  payoutFrequency: string;
-  minInvestment: number;
-  totalTarget: number;
-  raised: number;
-  sector: string;
-  duration: string;
-  uyTinScore: number;
-  riskLevel: string;
-  deadline: string;
-  status: string;
-  created_at?: string;
-}
-
 const AdminInvestorApp = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [investors, setInvestors] = useState<InvestorData[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [opportunities, setOpportunities] = useState<InvestmentOpportunity[]>([]);
   const [adminSection, setAdminSection] = useState<'dashboard' | 'opportunities' | 'auctions' | 'portfolios'>('dashboard');
   
   // Auction Management State
@@ -106,7 +87,6 @@ const AdminInvestorApp = () => {
     await Promise.all([
       loadInvestorsData(),
       loadActivitiesData(),
-      loadOpportunitiesData(),
       loadAuctionsData(),
       loadPortfoliosData()
     ]);
@@ -233,29 +213,6 @@ const AdminInvestorApp = () => {
     } catch (error) {
       console.error('Error loading activities:', error);
     }
-  };
-
-  const loadOpportunitiesData = async () => {
-    const mockOpportunities: InvestmentOpportunity[] = [
-      {
-        id: "1",
-        companyName: "Green Energy Solutions JSC",
-        projectName: "Dự án Solar Farm Bình Thuận",
-        description: "Dự án năng lượng mặt trời quy mô 50MW",
-        targetRate: 12.5,
-        payoutFrequency: 'quarterly',
-        minInvestment: 50000000,
-        totalTarget: 2000000000,
-        raised: 1200000000,
-        sector: "Năng lượng",
-        duration: "24 tháng",
-        uyTinScore: 88,
-        riskLevel: 'medium',
-        deadline: "2025-12-31",
-        status: 'open',
-      }
-    ];
-    setOpportunities(mockOpportunities);
   };
 
   const loadAuctionsData = async () => {
@@ -631,10 +588,7 @@ const AdminInvestorApp = () => {
 
           {/* Opportunities Section */}
           {adminSection === 'opportunities' && (
-            <OpportunitiesAdmin 
-              opportunities={opportunities} 
-              onUpdate={setOpportunities}
-            />
+            <OpportunitiesAdmin />
           )}
 
           {/* Auctions Section */}
