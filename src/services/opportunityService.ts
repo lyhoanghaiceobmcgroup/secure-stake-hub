@@ -1,4 +1,4 @@
-// import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface InvestmentOpportunity {
   id: string;
@@ -50,10 +50,8 @@ export interface InvestmentOpportunity {
 }
 
 export const opportunityService = {
-  // Fetch all opportunities (mock data until DB tables are created)
+  // Fetch all opportunities
   async getAll(): Promise<InvestmentOpportunity[]> {
-    // TODO: Uncomment after running SQL migration
-    /*
     const { data, error } = await supabase
       .from('investment_opportunities')
       .select('*')
@@ -65,13 +63,10 @@ export const opportunityService = {
     }
     
     return data || [];
-    */
-    return []; // Return empty array until DB is ready
   },
 
   // Fetch single opportunity
   async getById(id: string): Promise<InvestmentOpportunity | null> {
-    /*
     const { data, error } = await supabase
       .from('investment_opportunities')
       .select('*')
@@ -84,13 +79,10 @@ export const opportunityService = {
     }
     
     return data;
-    */
-    return null;
   },
 
   // Create new opportunity
   async create(opportunity: Partial<InvestmentOpportunity>): Promise<InvestmentOpportunity> {
-    /*
     const { data: { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
@@ -108,13 +100,10 @@ export const opportunityService = {
     }
     
     return data;
-    */
-    return { id: Date.now().toString(), ...opportunity } as InvestmentOpportunity;
   },
 
   // Update opportunity
   async update(id: string, updates: Partial<InvestmentOpportunity>): Promise<InvestmentOpportunity> {
-    /*
     const { data, error } = await supabase
       .from('investment_opportunities')
       .update(updates)
@@ -128,13 +117,10 @@ export const opportunityService = {
     }
     
     return data;
-    */
-    return { id, ...updates } as InvestmentOpportunity;
   },
 
   // Delete opportunity
   async delete(id: string): Promise<void> {
-    /*
     const { error } = await supabase
       .from('investment_opportunities')
       .delete()
@@ -144,7 +130,6 @@ export const opportunityService = {
       console.error('Error deleting opportunity:', error);
       throw error;
     }
-    */
   },
 
   // Track user activity
@@ -153,7 +138,6 @@ export const opportunityService = {
     activityType: 'view' | 'bookmark' | 'invest' | 'document_download',
     metadata?: any
   ): Promise<void> {
-    /*
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) return;
@@ -170,12 +154,10 @@ export const opportunityService = {
     if (error) {
       console.error('Error tracking activity:', error);
     }
-    */
   },
 
   // Get user activities (for admin)
   async getUserActivities(userId?: string) {
-    /*
     let query = supabase
       .from('user_investment_activities')
       .select(`
@@ -197,13 +179,10 @@ export const opportunityService = {
     }
     
     return data || [];
-    */
-    return [];
   },
 
   // Get activities for a specific opportunity (for admin)
   async getOpportunityActivities(opportunityId: string) {
-    /*
     const { data, error } = await supabase
       .from('user_investment_activities')
       .select(`
@@ -219,7 +198,5 @@ export const opportunityService = {
     }
     
     return data || [];
-    */
-    return [];
   }
 };
