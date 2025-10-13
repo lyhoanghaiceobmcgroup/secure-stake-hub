@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,8 @@ import UyTinBadge from "./UyTinBadge";
 import InvestmentFlow from "./InvestmentFlow";
 import OpportunityDetail from "./OpportunityDetail";
 import { cn } from "@/lib/utils";
+import { opportunityService } from "@/services/opportunityService";
+import { toast } from "sonner";
 
 interface BusinessInfo {
   foundedYear: number;
@@ -93,6 +95,8 @@ const OpportunityExplorer = () => {
   const [selectedOpportunity, setSelectedOpportunity] = useState<InvestmentOpportunity | null>(null);
   const [isInvestmentFlowOpen, setIsInvestmentFlowOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [realOpportunities, setRealOpportunities] = useState<any[]>([]);
 
   // Mock data
   const opportunities: InvestmentOpportunity[] = [

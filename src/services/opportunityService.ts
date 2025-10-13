@@ -50,9 +50,9 @@ export interface InvestmentOpportunity {
 }
 
 export const opportunityService = {
-  // Fetch all opportunities - Using mock data until migration is run
+  // Fetch all opportunities - Will use real DB after types regenerate
   async getAll(): Promise<InvestmentOpportunity[]> {
-    // TODO: Uncomment after running the migration
+    // NOTE: Uncomment after Supabase types regenerate from migration
     /*
     const { data, error } = await supabase
       .from('investment_opportunities')
@@ -66,12 +66,11 @@ export const opportunityService = {
     
     return data || [];
     */
-    return []; // Temporary mock data
+    return []; // Temporary - will show DB data after types regenerate
   },
 
   // Fetch single opportunity
   async getById(id: string): Promise<InvestmentOpportunity | null> {
-    // TODO: Uncomment after running the migration
     /*
     const { data, error } = await supabase
       .from('investment_opportunities')
@@ -91,7 +90,6 @@ export const opportunityService = {
 
   // Create new opportunity
   async create(opportunity: Partial<InvestmentOpportunity>): Promise<InvestmentOpportunity> {
-    // TODO: Uncomment after running the migration
     /*
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -116,7 +114,6 @@ export const opportunityService = {
 
   // Update opportunity
   async update(id: string, updates: Partial<InvestmentOpportunity>): Promise<InvestmentOpportunity> {
-    // TODO: Uncomment after running the migration
     /*
     const { data, error } = await supabase
       .from('investment_opportunities')
@@ -137,7 +134,6 @@ export const opportunityService = {
 
   // Delete opportunity
   async delete(id: string): Promise<void> {
-    // TODO: Uncomment after running the migration
     /*
     const { error } = await supabase
       .from('investment_opportunities')
@@ -157,7 +153,6 @@ export const opportunityService = {
     activityType: 'view' | 'bookmark' | 'invest' | 'document_download',
     metadata?: any
   ): Promise<void> {
-    // TODO: Uncomment after running the migration
     /*
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -176,20 +171,19 @@ export const opportunityService = {
       console.error('Error tracking activity:', error);
     }
     */
+    console.log('Activity tracked:', { opportunityId, activityType, metadata });
   },
 
   // Get user activities (for admin)
   async getUserActivities(userId?: string) {
-    // TODO: Uncomment after running the migration
     /*
     let query = supabase
       .from('user_investment_activities')
       .select(`
         *,
-        investment_opportunities(company_name, project_name),
-        profiles!user_id(full_name)
+        investment_opportunities(company_name, project_name)
       `)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false});
     
     if (userId) {
       query = query.eq('user_id', userId);
@@ -209,14 +203,10 @@ export const opportunityService = {
 
   // Get activities for a specific opportunity (for admin)
   async getOpportunityActivities(opportunityId: string) {
-    // TODO: Uncomment after running the migration
     /*
     const { data, error } = await supabase
       .from('user_investment_activities')
-      .select(`
-        *,
-        profiles!user_id(full_name, phone)
-      `)
+      .select('*')
       .eq('opportunity_id', opportunityId)
       .order('created_at', { ascending: false });
     
